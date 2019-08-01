@@ -6,7 +6,8 @@ import preprocess
 
 gnb = GaussianNB()
 attributes = []
-
+probs = []
+probsClass = []
 
 def buildModel(binsNum, dataPath):
 
@@ -29,13 +30,43 @@ def buildModel(binsNum, dataPath):
             df = pd.read_csv(filename)
     preprocess.clean(df, attributes)
     preprocess.discretisize(int(binsNum), df, attributes)
-    preprocess.numerate(df, attributes)
-    makefit(df)
+    #preprocess.numerate(df, attributes)
+    makefit(df, binsNum)
 
-def makefit(df):
-    x_train = df.drop(['class'], axis=1)
-    y_train = df['class']
-    gnb.fit(x_train, y_train)
+def makefit(df, binsNum):
+    m = 2
+    numY = len(df.loc[(df['class'] == 'Y')]) * 1.0
+    numN = len(df.loc[(df['class'] == 'N')]) * 1.0
+    n = len(df.index)
+    probY = numY / n
+    probN = numN / n
+    probsClass.append(['Y', probY])
+    probsClass.append(['N', probN])
+    for att in attributes:
+        if att[1] == 'NUMERIC':
+            vals = range(1, int(binsNum)+1)
+            p = 1 / (int(binsNum)*1.0)
+            for val in vals:
+                numRecY = len(df.loc[(df['class'] == 'Y') & (df[att[0]] == val)]) * 1.0
+                numRecN = len(df.loc[(df['class'] == 'N') & (df[att[0]] == val)]) * 1.0
+                prob1 = (numRecY + m * p) / (numY + m)
+                prob2 = (numRecN + m * p) / (numN + m)
+                o1 = (att[0], val, 'Y', prob1)
+                o2 = (att[0], val, 'N', prob2)
+                probs.append(o1)
+                probs.append(o2)
+        else:
+            vals = att[1].split(",")
+            p = 1 / (len(vals)*1.0)
+            for val in vals:
+                numRecY = len(df.loc[(df['class'] == 'Y') & (df[att[0]] == val)]) * 1.0
+                numRecN = len(df.loc[(df['class'] == 'N') & (df[att[0]] == val)]) * 1.0
+                prob1 = (numRecY + m * p) / (numY + m)
+                prob2 = (numRecN + m * p) / (numN + m)
+                o1 = (att[0], val, 'Y', prob1)
+                o2 = (att[0], val, 'N', prob2)
+                probs.append(o1)
+                probs.append(o2)
 
 
 def predict(binsnum, dataPath):
@@ -45,7 +76,7 @@ def predict(binsnum, dataPath):
             test = pd.read_csv(filename)
             preprocess.clean(test, attributes)
             preprocess.discretisize(int(binsnum), test, attributes)
-            preprocess.numerate(test, attributes)
+            #preprocess.numerate(test, attributes)
             test2 = test.drop(['class'], axis=1)
             pred = gnb.predict(test2)
             pred2 = []

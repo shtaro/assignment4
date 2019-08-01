@@ -60,9 +60,12 @@ class windowHandler:
 
     def validBins(self):
         #check if bins input valid
-        if self.binsNum.get().isdigit() and int(self.binsNum.get()) > 2:
-            return True
-        return False
+        try:
+            b = int(self.binsNum.get())
+            if b > 2:
+                return True
+        except:
+            return False
 
     def validPath(self):
         i = 0
