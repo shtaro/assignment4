@@ -1,13 +1,11 @@
-from sklearn.naive_bayes import GaussianNB
 from os import listdir
 import pandas as pd
 import preprocess
 
 
-gnb = GaussianNB()
 attributes = []
-probs = []
-probsClass = []
+probsClass = {}
+probs = {}
 
 def buildModel(binsNum, dataPath):
 
@@ -30,7 +28,6 @@ def buildModel(binsNum, dataPath):
             df = pd.read_csv(filename)
     preprocess.clean(df, attributes)
     preprocess.discretisize(int(binsNum), df, attributes)
-    #preprocess.numerate(df, attributes)
     makefit(df, binsNum)
 
 def makefit(df, binsNum):
@@ -40,33 +37,40 @@ def makefit(df, binsNum):
     n = len(df.index)
     probY = numY / n
     probN = numN / n
-    probsClass.append(['Y', probY])
-    probsClass.append(['N', probN])
+    probsClass["Y"] = probY
+    probsClass["N"] = probN
     for att in attributes:
         if att[1] == 'NUMERIC':
             vals = range(1, int(binsNum)+1)
             p = 1 / (int(binsNum)*1.0)
+            valDic = {}
             for val in vals:
                 numRecY = len(df.loc[(df['class'] == 'Y') & (df[att[0]] == val)]) * 1.0
                 numRecN = len(df.loc[(df['class'] == 'N') & (df[att[0]] == val)]) * 1.0
                 prob1 = (numRecY + m * p) / (numY + m)
                 prob2 = (numRecN + m * p) / (numN + m)
-                o1 = (att[0], val, 'Y', prob1)
-                o2 = (att[0], val, 'N', prob2)
-                probs.append(o1)
-                probs.append(o2)
+                probDic = {}
+                probDic['Y'] = prob1
+                probDic['N'] = prob2
+                valDic[val] = probDic
+            probs[att[0]] = valDic
         else:
             vals = att[1].split(",")
             p = 1 / (len(vals)*1.0)
+            valDic = {}
             for val in vals:
                 numRecY = len(df.loc[(df['class'] == 'Y') & (df[att[0]] == val)]) * 1.0
                 numRecN = len(df.loc[(df['class'] == 'N') & (df[att[0]] == val)]) * 1.0
                 prob1 = (numRecY + m * p) / (numY + m)
                 prob2 = (numRecN + m * p) / (numN + m)
-                o1 = (att[0], val, 'Y', prob1)
-                o2 = (att[0], val, 'N', prob2)
-                probs.append(o1)
-                probs.append(o2)
+                probDic = {}
+                probDic['Y'] = prob1
+                probDic['N'] = prob2
+                valDic[val] = probDic
+            probs[att[0]] = valDic
+
+
+pred = []
 
 
 def predict(binsnum, dataPath):
@@ -76,18 +80,23 @@ def predict(binsnum, dataPath):
             test = pd.read_csv(filename)
             preprocess.clean(test, attributes)
             preprocess.discretisize(int(binsnum), test, attributes)
-            #preprocess.numerate(test, attributes)
             test2 = test.drop(['class'], axis=1)
-            pred = gnb.predict(test2)
-            pred2 = []
-            for j in range(0, len(pred)):
-                if pred[j] == 1:
-                    pred2.append("yes")
+            for index, row in test2.iterrows():
+                calcprobY = 1
+                calcprobN = 1
+                for att in attributes:
+                    if att[0] != 'class':
+                        calcprobY = calcprobY * (((probs[att[0]])[row[att[0]]])['Y'])
+                        calcprobN = calcprobN * (probs[att[0]][row[att[0]]]['N'])
+                probY = probsClass['Y'] * calcprobY
+                probN = probsClass['N'] * calcprobN
+                if probY > probN:
+                    pred.append('yes')
                 else:
-                    pred2.append("no")
+                    pred.append('no')
             file = open(dataPath+"/output.txt", "w")
             j = 0
             for i in range(1, len(pred)+1):
-                file.write(str(i) + " " + pred2[j]+"\n")
+                file.write(str(i) + " " + pred[j]+"\n")
                 j += 1
             file.close()

@@ -133,4 +133,3 @@ root.title("Naive Bayes Classifier")
 root.geometry('500x300')
 root.resizable(width=False, height=False)
 root.mainloop()
-##################################################################################
