@@ -28,41 +28,37 @@ class windowHandler:
         self.dataPath = Entry(middle, textvariable=self.dta)
         self.dataPath.pack(padx=5, side=LEFT)
         self.bins = StringVar()
+        self.bins.trace("w", lambda name, index, mode, bins=self.bins: self.checkReady())
         self.binsNum = Entry(middle2, textvariable=self.bins)
         self.binsNum.pack(padx=5, side=LEFT)
         self.openDataPath = Button(middle, text="Browse", fg='black', command=lambda: self.openPath())
         self.openDataPath.pack(padx=5,  pady=15, side=LEFT)
-        self.buildButton = Button(bottom, text="Build", fg='black', command=lambda: self.build())
+        self.buildButton = Button(bottom, text="Build", fg='black', state=DISABLED, command=lambda: self.build())
         self.buildButton.pack(padx=5, pady=5)
-        self.classifyButton = Button(bottom, text="Classify", fg='black', command=lambda: self.classify())
+        self.classifyButton = Button(bottom, text="Classify", fg='black', state=DISABLED, command=lambda: self.classify())
         self.classifyButton.pack(padx=5, pady=5)
 
     def build(self):
-        if self.checkReady():
-            print("running....")
-            classifier.buildModel(self.binsNum.get(), self.dataPath.get())
-            self.popupmsg("Building classifier using train-set is done!")
-        else:
-            print('no run....')
+        print("running....")
+        classifier.buildModel(self.binsNum.get(), self.dataPath.get())
+        self.popupmsg("Building classifier using train-set is done!")
 
     def classify(self):
-        if self.checkReady():
-            print("running....")
-            classifier.predict(self.binsNum.get(), self.dataPath.get())
-            self.popupmsg2("Classifying done!")
-        else:
-            print('no run....')
+        print("running....")
+        classifier.predict(self.binsNum.get(), self.dataPath.get())
+        self.popupmsg2("Classifying done!")
 
     def openPath(self):
         directory = tk.filedialog.askdirectory(initialdir="/")
         self.dataPath.delete(0, END)
         self.dataPath.insert(0, directory)
 
+
     def validBins(self):
         #check if bins input valid
         try:
             b = int(self.binsNum.get())
-            if b > 2:
+            if b > 1:
                 return True
         except:
             return False
@@ -100,9 +96,11 @@ class windowHandler:
 
     def checkReady(self):
         if len(self.dataPath.get()) > 0 and len(self.binsNum.get()) > 0 and self.validBins() and self.validPath():
-            return True
+            self.buildButton.config(state=NORMAL)
+            self.classifyButton.config(state=NORMAL)
         else:
-            return False
+            self.buildButton.config(state=DISABLED)
+            self.classifyButton.config(state=DISABLED)
 
     def popupmsg(self, msg):
         popup = tk.Tk()
