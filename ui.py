@@ -37,6 +37,11 @@ class windowHandler:
         self.buildButton.pack(padx=5, pady=5)
         self.classifyButton = Button(bottom, text="Classify", fg='black', state=DISABLED, command=lambda: self.classify())
         self.classifyButton.pack(padx=5, pady=5)
+        self.lbl3 = Label(bottom, state=NORMAL, fg="red", text="Invalid Path")
+        self.lbl3.pack(padx=5, pady=5)
+        self.lbl4 = Label(bottom, state=NORMAL, fg="red", text="Invalid Bins")
+        self.lbl4.pack(padx=5, pady=5)
+
 
     def build(self):
         print("running....")
@@ -52,6 +57,7 @@ class windowHandler:
         directory = tk.filedialog.askdirectory(initialdir="/")
         self.dataPath.delete(0, END)
         self.dataPath.insert(0, directory)
+        self.checkReady()
 
 
     def validBins(self):
@@ -95,12 +101,25 @@ class windowHandler:
         return True
 
     def checkReady(self):
-        if len(self.dataPath.get()) > 0 and len(self.binsNum.get()) > 0 and self.validBins() and self.validPath():
+        if len(self.dataPath.get()) > 0 and self.validPath():
             self.buildButton.config(state=NORMAL)
             self.classifyButton.config(state=NORMAL)
+            self.lbl3.config(text="Valid Path", fg="green")
         else:
             self.buildButton.config(state=DISABLED)
             self.classifyButton.config(state=DISABLED)
+            self.lbl3.config(text="Invalid Path", fg="red")
+        if len(self.binsNum.get()) > 0 and self.validBins():
+            self.lbl4.config(text="Valid Bins", fg="green")
+            if len(self.dataPath.get()) > 0 and self.validPath():
+                self.buildButton.config(state=NORMAL)
+                self.classifyButton.config(state=NORMAL)
+        else:
+            self.buildButton.config(state=DISABLED)
+            self.classifyButton.config(state=DISABLED)
+            self.lbl4.config(text="Invalid Path", fg="red")
+
+
 
     def popupmsg(self, msg):
         popup = tk.Tk()
