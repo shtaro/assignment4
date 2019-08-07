@@ -12,6 +12,7 @@ import tkinter as tk
 class windowHandler:
 
     def __init__(self, root):
+        # creat window
         top = Frame(root)
         top.pack(side=TOP)
         middle = Frame(root)
@@ -45,19 +46,19 @@ class windowHandler:
 
     def build(self):
         print("running....")
-        classifier.buildModel(self.binsNum.get(), self.dataPath.get())
+        classifier.buildModel(self.binsNum.get(), self.dataPath.get()) #build the model
         self.popupmsg("Building classifier using train-set is done!")
 
     def classify(self):
         print("running....")
-        classifier.predict(self.binsNum.get(), self.dataPath.get())
+        classifier.predict(self.binsNum.get(), self.dataPath.get()) #classify the data in the test file
         self.popupmsg2("Classifying done!")
 
     def openPath(self):
-        directory = tk.filedialog.askdirectory(initialdir="/")
+        directory = tk.filedialog.askdirectory(initialdir="/") # open window to search folder
         self.dataPath.delete(0, END)
         self.dataPath.insert(0, directory)
-        self.checkReady()
+        self.checkReady() # check if path is valid
 
 
     def validBins(self):
@@ -73,7 +74,7 @@ class windowHandler:
         i = 0
         arr = []
         for f in listdir(self.dataPath.get()):
-            if f == "Structure.txt" or f == "train.csv" or f == "test.csv":
+            if f == "Structure.txt" or f == "train.csv" or f == "test.csv": #check if the folder contains this files
                 arr.append(True)
                 i = i + 1
                 if f == "train.csv" or f == "test.csv":
@@ -82,7 +83,7 @@ class windowHandler:
                         csvreader = csv.reader(file)
                         l = 0
                         for row in csvreader:
-                            if l > 0:
+                            if l > 0: #check if file is empty or not
                                 break
                             if row in (None, "", []):
                                 return False
@@ -101,7 +102,7 @@ class windowHandler:
         return True
 
     def checkReady(self):
-        if len(self.dataPath.get()) > 0 and self.validPath():
+        if len(self.dataPath.get()) > 0 and self.validPath(): #check if there is path and if valid
             self.buildButton.config(state=NORMAL)
             self.classifyButton.config(state=NORMAL)
             self.lbl3.config(text="Valid Path", fg="green")
@@ -109,7 +110,7 @@ class windowHandler:
             self.buildButton.config(state=DISABLED)
             self.classifyButton.config(state=DISABLED)
             self.lbl3.config(text="Invalid Path", fg="red")
-        if len(self.binsNum.get()) > 0 and self.validBins():
+        if len(self.binsNum.get()) > 0 and self.validBins(): #check if there is a number of bins and if valid
             self.lbl4.config(text="Valid Bins", fg="green")
             if len(self.dataPath.get()) > 0 and self.validPath():
                 self.buildButton.config(state=NORMAL)
@@ -122,6 +123,7 @@ class windowHandler:
 
 
     def popupmsg(self, msg):
+        #pop up message
         popup = tk.Tk()
         popup.wm_title("Naive Bayes Classifier")
         label = ttk.Label(popup, text=msg)
@@ -131,6 +133,7 @@ class windowHandler:
         popup.mainloop()
 
     def popupmsg2(self, msg):
+        # pop up message
         popup = tk.Tk()
         popup.wm_title("Naive Bayes Classifier")
         label = ttk.Label(popup, text=msg)

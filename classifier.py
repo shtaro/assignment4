@@ -8,7 +8,7 @@ probsClass = {}
 probs = {}
 
 def buildModel(binsNum, dataPath):
-
+    #open the Structure and train files
     for f in listdir(dataPath):
         if f == "Structure.txt":
             filename = dataPath+"/"+f
@@ -26,12 +26,13 @@ def buildModel(binsNum, dataPath):
         if f == "train.csv":
             filename = dataPath+"/"+f
             df = pd.read_csv(filename)
-    preprocess.clean(df, attributes)
-    preprocess.discretisize(int(binsNum), df, attributes)
-    makefit(df, binsNum)
+    preprocess.clean(df, attributes) #complete the missing values
+    preprocess.discretisize(int(binsNum), df, attributes) #discretisize the data
+    makefit(df, binsNum) #build the model
 
 def makefit(df, binsNum):
     m = 2
+    #calculate the probability of each class
     numY = len(df.loc[(df['class'] == 'Y')]) * 1.0
     numN = len(df.loc[(df['class'] == 'N')]) * 1.0
     n = len(df.index)
@@ -45,6 +46,7 @@ def makefit(df, binsNum):
             p = 1 / (int(binsNum)*1.0)
             valDic = {}
             for val in vals:
+                # calculate the probability of each class given this value
                 numRecY = len(df.loc[(df['class'] == 'Y') & (df[att[0]] == val)]) * 1.0
                 numRecN = len(df.loc[(df['class'] == 'N') & (df[att[0]] == val)]) * 1.0
                 prob1 = (numRecY + m * p) / (numY + m)
@@ -59,6 +61,7 @@ def makefit(df, binsNum):
             p = 1 / (len(vals)*1.0)
             valDic = {}
             for val in vals:
+                # calculate the probability of each class given this value
                 numRecY = len(df.loc[(df['class'] == 'Y') & (df[att[0]] == val)]) * 1.0
                 numRecN = len(df.loc[(df['class'] == 'N') & (df[att[0]] == val)]) * 1.0
                 prob1 = (numRecY + m * p) / (numY + m)
@@ -75,6 +78,7 @@ pred = []
 
 def predict(binsnum, dataPath):
     for f in listdir(dataPath):
+        #read the test file
         if f == "test.csv":
             filename = dataPath + "/" + f
             test = pd.read_csv(filename)
@@ -84,12 +88,14 @@ def predict(binsnum, dataPath):
             for index, row in test2.iterrows():
                 calcprobY = 1
                 calcprobN = 1
+                # calculate the probability of each class given this row
                 for att in attributes:
                     if att[0] != 'class':
                         calcprobY = calcprobY * (((probs[att[0]])[row[att[0]]])['Y'])
                         calcprobN = calcprobN * (probs[att[0]][row[att[0]]]['N'])
                 probY = probsClass['Y'] * calcprobY
                 probN = probsClass['N'] * calcprobN
+                #choose the class according to the higher probability
                 if probY > probN:
                     pred.append('yes')
                 else:
